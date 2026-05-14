@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: e-commerce-backend
+    runtime: java
+    plan: free
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -jar target/e-commerce-backend-0.0.1-SNAPSHOT.jar
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: e-commerce-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: e-commerce-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: e-commerce-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: e-commerce-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: e-commerce-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_ORIGIN
+        value: https://e-commerce-two-fawn-25.vercel.app
+
+databases:
+  - name: e-commerce-db
+    plan: free
