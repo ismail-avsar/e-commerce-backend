@@ -1,25 +1,35 @@
 # Bandage E-Commerce Backend
 
-Spring Boot ile geliştirilmiş REST API. Workintech e-commerce ödevindeki T08–T23 issue akışlarını ve React frontend uygulamasının beklediği endpoint/response formatlarını destekler.
+Spring Boot ile gelistirilmis REST API. Workintech e-commerce bitirme odevindeki T08-T23 issue akislarini ve React frontend uygulamasinin bekledigi endpoint/response formatlarini destekler.
 
----
+## Canli Backend
+
+Backend Render uzerinde Docker + PostgreSQL ile yayindadir:
+
+```text
+https://e-commerce-backend-tpne.onrender.com
+```
+
+Canli frontend Vercel uzerinden bu backend'e baglanir:
+
+```text
+https://e-commerce-two-fawn-25.vercel.app
+```
 
 ## Proje Durumu
 
-Temel e-commerce akışları tamamlanmıştır:
+Temel e-commerce akislari tamamlanmistir:
 
-- Kullanıcı kaydı ve girişi
-- JWT token doğrulama
+- Kullanici kaydi ve girisi
+- JWT token dogrulama
 - Rol listeleme
 - Kategori listeleme
-- Ürün listeleme (filtreleme, sıralama, sayfalama)
-- Ürün detay bilgisi
-- Adres CRUD işlemleri
-- Kredi kartı CRUD işlemleri
-- Sipariş oluşturma
-- Geçmiş siparişleri listeleme
-
----
+- Urun listeleme, filtreleme, siralama ve sayfalama
+- Urun detay bilgisi
+- Adres CRUD islemleri
+- Kredi karti CRUD islemleri
+- Siparis olusturma
+- Gecmis siparisleri listeleme
 
 ## Teknolojiler
 
@@ -27,152 +37,144 @@ Temel e-commerce akışları tamamlanmıştır:
 |---|---|
 | Dil | Java 17 |
 | Framework | Spring Boot 3.2.1 |
-| Güvenlik | Spring Security, JWT, BCrypt |
-| Veritabanı | PostgreSQL (prod), H2 (test) |
+| Guvenlik | Spring Security, JWT, BCrypt |
+| Veritabani | PostgreSQL, H2 test |
 | ORM | Spring Data JPA / Hibernate |
 | Build | Maven |
+| Deployment | Render, Docker |
 
----
+## Lokal Calistirma
 
-## Kurulum ve Çalıştırma
-
-### 1. PostgreSQL veritabanı oluştur
+### 1. PostgreSQL veritabani olustur
 
 ```sql
 CREATE DATABASE bandage_ecommerce;
 ```
 
-### 2. Ortam değişkenlerini ayarla
+### 2. Ortam degiskenlerini ayarla
 
-Gerçek şifreler GitHub'a yüklenmez. Ortam değişkeni olarak verilir.
+Gercek sifreler GitHub'a yuklenmez. Ortam degiskeni olarak verilir.
 
-**PowerShell:**
+PowerShell:
+
 ```powershell
 $env:DB_PASSWORD="kendi_postgresql_sifreniz"
 $env:JWT_SECRET="uzun-ve-gizli-bir-jwt-anahtari"
 ```
 
-İsteğe bağlı olarak şunlar da değiştirilebilir:
+Istege bagli olarak sunlar da degistirilebilir:
+
 ```powershell
 $env:DB_URL="jdbc:postgresql://localhost:5432/bandage_ecommerce"
 $env:DB_USERNAME="postgres"
+$env:FRONTEND_ORIGIN="http://localhost:5173"
 ```
 
-### 3. Uygulamayı başlat
+### 3. Uygulamayi baslat
 
-```bash
-cd e-commerce-backend
+```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-Backend varsayılan olarak şu adreste çalışır: `http://localhost:8080`
+Backend varsayilan olarak su adreste calisir:
 
----
-
-## Application Properties
-
-```properties
-spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5432/bandage_ecommerce}
-spring.datasource.username=${DB_USERNAME:postgres}
-spring.datasource.password=${DB_PASSWORD}
-
-app.jwt.secret=${JWT_SECRET}
-app.jwt.expiration-minutes=${JWT_EXPIRATION_MINUTES:1440}
-app.frontend.origin=${FRONTEND_ORIGIN:http://localhost:5173}
+```text
+http://localhost:8080
 ```
 
----
+## Render Deployment
 
-## Test Kullanıcıları
+Backend Render Blueprint ile deploy edilir. Repo kokunde su dosyalar bulunur:
 
-Uygulama ilk çalıştığında seed data otomatik oluşturulur:
+- `render.yaml`
+- `Dockerfile`
+- `.dockerignore`
 
-| Email | Şifre | Rol |
+`render.yaml`, Render uzerinde iki kaynak olusturur:
+
+- `e-commerce-backend` web service
+- `e-commerce-db` PostgreSQL database
+
+Render tarafinda kullanilan baslica ortam degiskenleri:
+
+```env
+DB_HOST
+DB_PORT
+DB_NAME
+DB_USERNAME
+DB_PASSWORD
+JWT_SECRET
+FRONTEND_ORIGIN=https://e-commerce-two-fawn-25.vercel.app
+```
+
+Port ayari Render ile uyumludur:
+
+```properties
+server.port=${PORT:8080}
+```
+
+Veritabani URL'i hem manuel `DB_URL` ile hem de Render'in database degiskenleriyle calisacak sekilde ayarlanmistir.
+
+## Test Kullanicilari
+
+Uygulama ilk calistiginda seed data otomatik olusturulur:
+
+| Email | Sifre | Rol |
 |---|---|---|
 | customer@commerce.com | 123456 | Customer |
 | store@commerce.com | 123456 | Store |
 | admin@commerce.com | 123456 | Admin |
 
----
+## Token Kullanimi
 
-## Token Kullanımı
+Issue gereksinimlerine uygun olarak token, header icinde dogrudan gonderilir. `Bearer` prefix'i kullanilmaz.
 
-Issue gereksinimlerine uygun olarak token, header içinde doğrudan gönderilir. `Bearer` prefix'i **kullanılmaz**.
-
-```
+```text
 Authorization: JWT_TOKEN
 ```
 
----
-
 ## API Endpointleri
 
-### Auth & Roller
-
-| Method | Endpoint | Açıklama |
+| Method | Endpoint | Aciklama |
 |---|---|---|
 | GET | `/roles` | Rolleri listeler |
-| POST | `/signup` | Yeni kullanıcı oluşturur |
-| POST | `/login` | Kullanıcı girişi yapar |
-| GET | `/verify` | Token doğrular, kullanıcı bilgisi döner |
-
-### Ürün & Kategori
-
-| Method | Endpoint | Açıklama |
-|---|---|---|
+| POST | `/signup` | Yeni kullanici olusturur |
+| POST | `/login` | Kullanici girisi yapar |
+| GET | `/verify` | Token dogrular, kullanici bilgisi doner |
 | GET | `/categories` | Kategorileri listeler |
-| GET | `/products` | Ürünleri listeler |
-| GET | `/products/{productId}` | Tek ürün detayını getirir |
-
-### Adres
-
-| Method | Endpoint | Açıklama |
-|---|---|---|
-| GET | `/user/address` | Kullanıcı adreslerini listeler |
+| GET | `/products` | Urunleri listeler |
+| GET | `/products/{productId}` | Tek urun detayini getirir |
+| GET | `/user/address` | Kullanici adreslerini listeler |
 | POST | `/user/address` | Yeni adres ekler |
-| PUT | `/user/address` | Adres günceller |
+| PUT | `/user/address` | Adres gunceller |
 | DELETE | `/user/address/{addressId}` | Adres siler |
-
-### Kart
-
-| Method | Endpoint | Açıklama |
-|---|---|---|
-| GET | `/user/card` | Kullanıcı kartlarını listeler |
+| GET | `/user/card` | Kullanici kartlarini listeler |
 | POST | `/user/card` | Yeni kart ekler |
-| PUT | `/user/card` | Kart günceller |
+| PUT | `/user/card` | Kart gunceller |
 | DELETE | `/user/card/{cardId}` | Kart siler |
+| POST | `/order` | Siparis olusturur |
+| GET | `/order` | Gecmis siparisleri listeler |
 
-### Sipariş
+## Urun Listeleme
 
-| Method | Endpoint | Açıklama |
-|---|---|---|
-| POST | `/order` | Sipariş oluşturur |
-| GET | `/order` | Geçmiş siparişleri listeler |
+`GET /products` su query parametrelerini destekler:
 
----
-
-## Ürün Listeleme Query Parametreleri
-
-`GET /products` aşağıdaki parametreleri destekler:
-
-| Parametre | Açıklama |
+| Parametre | Aciklama |
 |---|---|
-| `category` | Kategori ID'ye göre filtreler |
-| `filter` | Ürün adında metin araması yapar |
+| `category` | Kategori ID'ye gore filtreler |
+| `filter` | Urun adi ve aciklamasinda metin aramasi yapar |
 | `sort` | `price:asc`, `price:desc`, `rating:asc`, `rating:desc` |
-| `limit` | Sayfa başına ürün sayısı |
-| `offset` | Kaçıncı üründen başlanacağı |
+| `limit` | Sayfa basina urun sayisi |
+| `offset` | Kacinci urunden baslanacagi |
 
-**Örnekler:**
-```
-GET /products?limit=25&offset=0
-GET /products?category=3
-GET /products?filter=gri
-GET /products?sort=price:desc
+Ornek:
+
+```text
 GET /products?category=3&filter=gri&sort=rating:desc&limit=25&offset=0
 ```
 
-**Response formatı:**
+Response formati:
+
 ```json
 {
   "total": 25,
@@ -180,54 +182,24 @@ GET /products?category=3&filter=gri&sort=rating:desc&limit=25&offset=0
 }
 ```
 
----
+## Canli Test Edilen Akislar
 
-## Görseller
-
-Ürün görselleri backend tarafında local static dosyalar üzerinden servis edilir.
-
-```
-http://localhost:8080/images/products/product-1.jpg
-```
-
-Ürün response'unda görseller şu formatta döner:
-
-```json
-"images": [
-  {
-    "url": "http://localhost:8080/images/products/product-1.jpg",
-    "index": 0
-  }
-]
-```
-
----
-
-## Test Edilen Akışlar
-
-Teslim öncesi Postman ve frontend ile kontrol edilmiştir:
+Teslim oncesi canli ortamda su kontroller yapildi:
 
 - `GET /categories`
-- `GET /products`
-- `GET /products/{productId}`
-- `POST /login` ve `GET /verify`
-- Adres ekleme, güncelleme, silme
-- Kart ekleme, güncelleme, silme
-- Sipariş oluşturma
-- Geçmiş siparişleri listeleme
-- Frontend ile login, sepet, order ve previous orders akışı
+- `GET /products?limit=2&offset=0`
+- `POST /login`
+- Frontend ile urun listeleme
+- Frontend ile login
+- Vercel frontend'in Render backend URL'ine baglanmasi
 
----
+## Guvenlik Notlari
 
-## Güvenlik Notları
-
-- Gerçek veritabanı şifresi GitHub'a yüklenmez.
-- JWT secret GitHub'a yüklenmez.
-- Kredi kartı CVV bilgisi saklanmaz.
-- Bu proje eğitim/ödev kapsamında demo amaçlıdır. Gerçek production ortamında kart numaraları ve ödeme süreci için ek güvenlik katmanları gerekir.
-
----
+- Gercek veritabani sifresi GitHub'a yuklenmez.
+- JWT secret GitHub'a yuklenmez.
+- Kredi karti CVV bilgisi saklanmaz.
+- Kart ve odeme akisi egitim/odev kapsaminda demo amaclidir.
 
 ## Yazar
 
-**İsmail Avşar** — [@ismail-avsar](https://github.com/ismail-avsar)
+Ismail Avsar - [@ismail-avsar](https://github.com/ismail-avsar)
